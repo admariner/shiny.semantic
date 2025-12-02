@@ -18,33 +18,30 @@ test_that("test dropdown_input", {
                         si_str, fixed = TRUE)))
 })
 
-init_driver <- function(app) {
-  shinytest2::AppDriver$new(app)
-}
-
-test_app <- function(value, initial, multiple, choices = NULL) {
-  type <- if (multiple) "multiple" else ""
-  shiny::shinyApp(
-    ui = semanticPage(
-      dropdown_input("dropdown", LETTERS, value = initial, type = type),
-      shiny::actionButton("trigger", "Trigger")
-    ),
-    server = function(input, output, session) {
-      shiny::observeEvent(input$trigger, {
-        update_dropdown_input(session, "dropdown", value = value, choices = choices)
-      })
-    }
-  )
-}
 
 describe("update_dropdown_input", {
   skip_on_cran()
   local_edition(3)
 
+  test_app <- function(value, initial_value, multiple, choices = NULL, initial_choices = LETTERS) {
+    type <- if (multiple) "multiple" else ""
+    shiny::shinyApp(
+      ui = semanticPage(
+        dropdown_input("dropdown", initial_choices, value = initial_value, type = type),
+        shiny::actionButton("trigger", "Trigger")
+      ),
+      server = function(input, output, session) {
+        shiny::observeEvent(input$trigger, {
+          update_dropdown_input(session, "dropdown", value = value, choices = choices)
+        })
+      }
+    )
+  }
+
   it("is a no-op with NULL value", {
     # Arrange
     initial_value <- "A"
-    app <- init_driver(test_app(value = NULL, initial = initial_value, multiple = FALSE))
+    app <- init_driver(test_app(value = NULL, initial_value = initial_value, multiple = FALSE))
     withr::defer(app$stop())
 
     # Act
@@ -60,7 +57,7 @@ describe("update_dropdown_input", {
   it("is a no-op with a value not in choices", {
     # Arrange
     initial_value <- "A"
-    app <- init_driver(test_app(value = "asdf", initial = initial_value, multiple = FALSE))
+    app <- init_driver(test_app(value = "asdf", initial_value = initial_value, multiple = FALSE))
     withr::defer(app$stop())
 
     # Act
@@ -76,7 +73,7 @@ describe("update_dropdown_input", {
   it("updates a single-selection dropdown with a new value", {
     # Arrange
     value <- "A"
-    app <- init_driver(test_app(value = value, initial = NULL, multiple = FALSE))
+    app <- init_driver(test_app(value = value, initial_value = NULL, multiple = FALSE))
     withr::defer(app$stop())
 
     # Act
@@ -92,7 +89,7 @@ describe("update_dropdown_input", {
   it("updates a multi-selection dropdown with new values", {
     # Arrange
     value <- c("A", "B")
-    app <- init_driver(test_app(value = value, initial = NULL, multiple = TRUE))
+    app <- init_driver(test_app(value = value, initial_value = NULL, multiple = TRUE))
     withr::defer(app$stop())
 
     # Act
@@ -107,7 +104,7 @@ describe("update_dropdown_input", {
 
   it("clears a single-selection dropdown with \"\" (empty string)", {
     # Arrange
-    app <- init_driver(test_app(value = "", initial = "A", multiple = FALSE))
+    app <- init_driver(test_app(value = "", initial_value = "A", multiple = FALSE))
     withr::defer(app$stop())
 
     # Act
@@ -122,7 +119,7 @@ describe("update_dropdown_input", {
 
   it("clears a multi-selection dropdown with \"\" (empty string)", {
     # Arrange
-    app <- init_driver(test_app(value = "", initial = "A", multiple = TRUE))
+    app <- init_driver(test_app(value = "", initial_value = "A", multiple = TRUE))
     withr::defer(app$stop())
 
     # Act
@@ -136,7 +133,7 @@ describe("update_dropdown_input", {
 
   it("clears a single-selection dropdown with character(0)", {
     # Arrange
-    app <- init_driver(test_app(value = character(0), initial = "A", multiple = FALSE))
+    app <- init_driver(test_app(value = character(0), initial_value = "A", multiple = FALSE))
     withr::defer(app$stop())
 
     # Act
@@ -151,7 +148,7 @@ describe("update_dropdown_input", {
 
   it("clears a multi-selection dropdown with character(0)", {
     # Arrange
-    app <- init_driver(test_app(value = character(0), initial = "A", multiple = TRUE))
+    app <- init_driver(test_app(value = character(0), initial_value = "A", multiple = TRUE))
     withr::defer(app$stop())
 
     # Act
@@ -165,7 +162,7 @@ describe("update_dropdown_input", {
 
   it("updates choices and clears selection in a single-selection dropdown when provided with choices and a NULL value", {
     # Arrange
-    app <- init_driver(test_app(value = NULL, initial = "abc", multiple = FALSE, choices = c("abc", "xyz")))
+    app <- init_driver(test_app(value = NULL, initial_value = "abc", multiple = FALSE, choices = c("abc", "xyz")))
     withr::defer(app$stop())
 
     # Act
@@ -180,7 +177,7 @@ describe("update_dropdown_input", {
 
   it("updates choices and clears selection in a multi-selection dropdown when provided with choices and a NULL value", {
     # Arrange
-    app <- init_driver(test_app(value = NULL, initial = "abc", multiple = TRUE, choices = c("abc", "xyz")))
+    app <- init_driver(test_app(value = NULL, initial_value = "abc", multiple = TRUE, choices = c("abc", "xyz")))
     withr::defer(app$stop())
 
     # Act
@@ -195,7 +192,7 @@ describe("update_dropdown_input", {
   it("updates choices and sets selection in a single-selection dropdown when provided with both choices and a value", {
     # Arrange
     value <- "xyz"
-    app <- init_driver(test_app(value = value, initial = NULL, multiple = FALSE, choices = c("abc", "xyz")))
+    app <- init_driver(test_app(value = value, initial_value = NULL, multiple = FALSE, choices = c("abc", "xyz")))
     withr::defer(app$stop())
 
     # Act
@@ -211,7 +208,7 @@ describe("update_dropdown_input", {
   it("updates choices and sets selection in a multi-selection dropdown when provided with both choices and a value", {
     # Arrange
     value <- c("abc", "xyz")
-    app <- init_driver(test_app(value = value, initial = NULL, multiple = TRUE, choices = c("abc", "xyz")))
+    app <- init_driver(test_app(value = value, initial_value = NULL, multiple = TRUE, choices = c("abc", "xyz")))
     withr::defer(app$stop())
 
     # Act
